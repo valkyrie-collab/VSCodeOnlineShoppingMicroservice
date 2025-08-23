@@ -1,0 +1,56 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "ValkyriePostgreSQLProduct",
+            "database": "product",
+            "username": "postgres",
+            "password": "postgres30082004"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "ValkyriePostgreSQLCart",
+            "database": "cart",
+            "username": "postgres",
+            "password": "postgres30082004"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "ValkyriePostgreSQLOrder",
+            "username": "postgres",
+            "password": "postgres30082004",
+            "database": "orders"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "ValkyriePostgreSQLSeller",
+            "username": "postgres",
+            "password": "postgres30082004",
+            "database": "seller"
+        },
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "username": "postgres",
+            "password": "postgres30082004",
+            "name": "ValkyriePostgreSQLAuthentication",
+            "database": "authentication"
+        }
+    ],
+    "java.compile.nullAnalysis.mode": "automatic"
+}
