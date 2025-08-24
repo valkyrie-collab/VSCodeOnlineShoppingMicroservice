@@ -25,7 +25,11 @@ public class Product {
     private int discount;
     private String status;
     private String searchKeyword;
-    private int rating;
+    private int oneStar;
+    private int twoStar;
+    private int threeStar;
+    private int fourStar;
+    private int fiveStar;
     private String shippingInformation;
 //    @ElementCollection
     private String sellerId;
@@ -143,12 +147,48 @@ public class Product {
         return this;
     }
 
-    public int getRating() {
-        return rating;
+    public int getOneStar() {
+        return oneStar;
     }
 
-    public Product setRating(int rating) {
-        this.rating = rating;
+    public Product setOneStar(int oneStar) {
+        this.oneStar = oneStar;
+        return this;
+    }
+
+    public int getTwoStar() {
+        return twoStar;
+    }
+
+    public Product setTwoStar(int twoStar) {
+        this.twoStar = twoStar;
+        return this;
+    }
+
+    public int getThreeStar() {
+        return threeStar;
+    }
+
+    public Product setThreeStar(int threeStar) {
+        this.threeStar = threeStar;
+        return this;
+    }
+
+    public int getFourStar() {
+        return fourStar;
+    }
+
+    public Product setFourStar(int fourStar) {
+        this.fourStar = fourStar;
+        return this;
+    }
+
+    public int getFiveStar() {
+        return fiveStar;
+    }
+
+    public Product setFiveStar(int fiveStar) {
+        this.fiveStar = fiveStar;
         return this;
     }
 
@@ -181,8 +221,8 @@ public class Product {
 
     @Override
     public String toString() {
-        return id + description + price + brand + color + name + 
-                category + sellerId + shippingInformation + rating + 
-                searchKeyword + status + discount + variant + size + quantity;
+        return id + description + price + brand + color + name + twoStar +
+                category + sellerId + shippingInformation + oneStar + threeStar +
+                searchKeyword + status + discount + variant + size + quantity + fourStar + fiveStar;
     }
 }
