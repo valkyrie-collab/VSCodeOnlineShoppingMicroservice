@@ -16,7 +16,8 @@ public class ProductDTO {
     private int discount;
     private String status;
     private String searchKeyword;
-    private double rating;
+    private List<Double> ratings;
+    private List<String> customerIds;
     private double discountedPrice;
     private String shippingInformation;
     private List<ImageDTO> images;
@@ -49,9 +50,11 @@ public class ProductDTO {
 
     public int getDiscount() {return discount;}
 
-    public double getRating() {return rating;}
+    public List<Double> getRating() {return ratings;}
 
     public double getDiscountedPrice() {return discountedPrice;}
+
+    public List<String> getCustomerId() {return customerIds;}
 
     public List<ImageDTO> getImages() {return images;}
 
@@ -120,8 +123,8 @@ public class ProductDTO {
         return this;
     }
 
-    public ProductDTO setRating(double rating) {
-        this.rating = rating;
+    public ProductDTO setRating(List<Double> ratings) {
+        this.ratings = ratings;
         return this;
     }
 
@@ -140,6 +143,9 @@ public class ProductDTO {
         return this;
     }
 
-    
+    public ProductDTO setCustomerId(List<String> customerIds) {
+        this.customerIds = customerIds;
+        return this;
+    }
 
 }

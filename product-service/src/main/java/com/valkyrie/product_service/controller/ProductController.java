@@ -3,6 +3,7 @@ package com.valkyrie.product_service.controller;
 import java.io.IOException;
 import java.util.List;
 
+import com.valkyrie.product_service.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,10 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.valkyrie.product_service.model.Image;
-import com.valkyrie.product_service.model.Product;
-import com.valkyrie.product_service.model.ProductDTO;
-import com.valkyrie.product_service.model.Store;
 import com.valkyrie.product_service.service.ProductService;
 
 @RestController
@@ -48,6 +45,7 @@ public class ProductController {
 
             }
         ).toList();
+        images = images.stream().map(image -> image.setProduct(product)).toList();
         Store<String> store = service.save(token, product.setImages(images));
 
         return ResponseEntity.status(store.getStatus()).body(store.getInstance());
@@ -62,11 +60,11 @@ public class ProductController {
     }
 
     @PostMapping("/update-product-rating")
-    public ResponseEntity<String> updateRating(
-        @RequestParam String id, @RequestParam boolean oneStar, @RequestParam boolean twoStar,
-        @RequestParam boolean threeStar, @RequestParam boolean fourStar, @RequestParam boolean fiveStar) {
+    public ResponseEntity<String> updateRating(@RequestParam String id,
+                                               @RequestBody Star star,
+                                               @RequestParam String token) {
         
-        Store<String> store = service.updateRating(id, oneStar, twoStar, threeStar, fourStar, fiveStar);
+        Store<String> store = service.updateRating(id, star, token);
 
         return ResponseEntity.status(store.getStatus()).body(store.getInstance());
     }
@@ -111,5 +109,12 @@ public class ProductController {
         Store<String> store = service.deleteAllProductBySellerId(sellerId);
 
         return ResponseEntity.status(store.getStatus()).body(store.getInstance());
-    } 
+    }
+
+    @DeleteMapping("/delete-product-id")
+    public ResponseEntity<String> deleteProductById(@RequestParam String productId) {
+        Store<String> store = service.deleteProductById(productId);
+
+        return ResponseEntity.status(store.getStatus()).body(store.getInstance());
+    }
 }

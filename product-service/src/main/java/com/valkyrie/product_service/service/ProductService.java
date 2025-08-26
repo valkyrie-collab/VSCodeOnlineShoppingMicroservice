@@ -1,20 +1,16 @@
 package com.valkyrie.product_service.service;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+import com.valkyrie.product_service.model.*;
+import com.valkyrie.product_service.repository.ImageRepository;
+import com.valkyrie.product_service.repository.StarRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.valkyrie.product_service.config.TokenConfig;
-import com.valkyrie.product_service.model.Image;
-import com.valkyrie.product_service.model.ImageDTO;
-import com.valkyrie.product_service.model.Product;
-import com.valkyrie.product_service.model.ProductDTO;
-import com.valkyrie.product_service.model.Store;
 import com.valkyrie.product_service.repository.ProductRepository;
 
 @Service
@@ -27,6 +23,14 @@ public class ProductService {
     @Autowired
     private void setConfig(TokenConfig config) {this.config = config;}
 
+    private StarRepository starRepo;
+    @Autowired
+    private void setStarRepo(StarRepository starRepo) {this.starRepo = starRepo;}
+
+    private ImageRepository imageRepo;
+    @Autowired
+    private void setImageRepo(ImageRepository imageRepo) {this.imageRepo = imageRepo;}
+
     private ProductDTO getProduct(Product product) {
         List<Image> images = product.getImages();
         List<ImageDTO> imagesDTO = new LinkedList<>();
@@ -38,31 +42,31 @@ public class ProductService {
             );
         }
 
+//        List<Star> stars = product.getStars();
+        List<StarDTO> starDTOs = product.getStars().stream().map(star -> {
+            return new StarDTO().setFiveStar(star.getFiveStar()).setCustomerId(star.getCustomerId())
+                    .setFourStar(star.getFourStar()).setOneStar(star.getOneStar()).setId(star.getId())
+                    .setTwoStar(star.getTwoStar()).setThreeStar(star.getThreeStar());}).toList();
+
         double discountedPrice = product.getPrice() - ((product.getDiscount() / 100.0) * product.getPrice());
 
-        double rating = (5 * product.getFiveStar() + 
-                        4 * product.getFourStar() + 
-                        3 * product.getThreeStar() + 
-                        2 * product.getTwoStar() +
-                        1 * product.getOneStar()) / 
-                        (product.getFiveStar() +
-                        product.getFourStar() +
-                        product.getThreeStar() + 
-                        product.getTwoStar() +
-                        product.getOneStar());
-
         return new ProductDTO().setBrand(product.getBrand()).setCategory(product.getCategory())
-                            .setColor(product.getColor()).setDescription(product.getDescription())
-                            .setDiscount(product.getDiscount()).setDiscountedPrice(discountedPrice)
-                            .setId(product.getId()).setImages(imagesDTO).setName(product.getName())
-                            .setPrice(product.getPrice()).setQuantity(product.getQuantity()).setRating(rating);
-
+                .setColor(product.getColor()).setDescription(product.getDescription())
+                .setDiscount(product.getDiscount()).setDiscountedPrice(discountedPrice)
+                .setVariant(product.getVariant()).setStatus(product.getStatus())
+                .setName(product.getName()).setShippingInformation(product.getShippingInformation())
+                .setPrice(product.getPrice()).setQuantity(product.getQuantity()).setRating(
+                        starDTOs.stream().map(StarDTO::getRating).toList()
+                ).setSize(product.getSize()).setSearchKeyword(product.getSearchKeyword())
+                .setId(product.getId()).setImages(imagesDTO).setCustomerId(
+                        starDTOs.stream().map(StarDTO::getCustomerId).toList()
+                );
     }
 
     public Store<String> save(String token, Product product) {
         String uuid = UUID.randomUUID().toString();
         String username = config.getUsername(token);
-        repo.save(product.setId(uuid).setSellerId(username));
+        repo.save(product.setId(uuid).setSellerId(username)); //username
 
         return Store.initialize(HttpStatus.ACCEPTED, "The Product saved successfully.....");
     }
@@ -72,64 +76,65 @@ public class ProductService {
         String username = config.getUsername(token);
         product = product.setSellerId(username);
         Product presentProduct = repo.findById(product.getId()).orElse(product);
-
-        if (product.getImages().isEmpty() || product.getImages() == null) {
-            List<Image> images = presentProduct.getImages();
-
-            try {
-                product = product.setImages(images);
-            } catch (Exception e) {
-                Store.initialize(HttpStatus.BAD_REQUEST, "Err while inserting image....");
-            }
-
-        }
         
         if (!presentProduct.toString().equals(product.toString())) {
             repo.save(product);
-            Store.initialize(HttpStatus.ACCEPTED, "The Product Updated successfully....");
+            return Store.initialize(HttpStatus.ACCEPTED, "The Product Updated successfully....");
         }
 
         return Store.initialize(HttpStatus.BAD_REQUEST, "Err while Updating product....");
     }
 
     @Transactional
-    public Store<String> updateRating(String id, boolean oneStar, boolean twoStar, 
-                                    boolean threeStar, boolean fourStar, boolean fiveStar) {
-        Integer[] fiveStars = repo.findStarsFromProduct(id);
+    public Store<String> updateRating(String id, Star star, String customerId) {
+        star = star.setCustomerId(customerId);
+        Star fiveStars = starRepo.findByCustomerId(customerId);
+        Product product = repo.findById(id).orElse(null);
+
+        if (product == null) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "No product Present....");
+        }
 
         if (fiveStars == null) {
-            return Store.initialize(HttpStatus.BAD_REQUEST, "There is an issue with rating....");
+                star.setProduct(product).setCustomerId(customerId);
+                starRepo.save(star);
+
+            return Store.initialize(HttpStatus.OK, "rating saved successfully....");
         }
 
-        if (fiveStar) {
-            fiveStars[4] += 1;
-        } else if (fourStar) {
-            fiveStars[3] += 1;
-        } else if (threeStar) {
-            fiveStars[2] += 1;
-        } else if (twoStar) {
-            fiveStars[1] += 1;
-        } else if (oneStar) {
-            fiveStars[0] += 1;
+        if (star.getFiveStar() == 1) {
+            fiveStars = fiveStars.setFiveStar(fiveStars.getFiveStar() + star.getFiveStar());
+        } else if (star.getFourStar() == 1) {
+            fiveStars = fiveStars.setFourStar(fiveStars.getFourStar() + star.getFourStar());
+        } else if (star.getThreeStar() == 1) {
+            fiveStars = fiveStars.setThreeStar(fiveStars.getThreeStar() + star.getThreeStar());
+        } else if (star.getTwoStar() == 1) {
+            fiveStars = fiveStars.setTwoStar(fiveStars.getTwoStar() + star.getTwoStar());
         } else {
-            return Store.initialize(HttpStatus.BAD_REQUEST, "The star initialization is not ok...");
+            fiveStars = fiveStars.setOneStar(fiveStars.getOneStar() + star.getOneStar());
         }
 
-        repo.updateStarRatings(id, fiveStars[0], fiveStars[1], fiveStars[2], fiveStars[3], fiveStars[4]);
-            
-        return null;
+        starRepo.save(fiveStars);
+
+        return Store.initialize(HttpStatus.OK, "Rating updated successfully...");
     }
 
     @Transactional
     public Store<String> updateImage(String id, List<Image> images) {
-        repo.deleteAllImageById(id);
-        
-        if (!repo.findAllImageById(id).isEmpty()) {
-            Store.initialize(HttpStatus.BAD_REQUEST, "There is a error while deleting image....");
+        Product product = repo.findById(id).orElse(null);
+
+        if (product == null) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "There is no such product...");
         }
 
-        Product product = repo.findById(id).orElse(null);
-        repo.save(product.setImages(images));
+        imageRepo.deleteAllByProduct(product);
+
+        if (!imageRepo.findAllByProduct(product).isEmpty()) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "There is a error while deleting image....");
+        }
+
+        images = images.stream().map(image -> image.setProduct(product)).toList();
+        imageRepo.saveAll(images);
 
         return Store.initialize(HttpStatus.ACCEPTED, "The images saved successfully....");
     }
@@ -141,7 +146,7 @@ public class ProductService {
         if (products.isEmpty()) {return Store.initialize(HttpStatus.BAD_REQUEST, List.of());}
 
         return Store.initialize(HttpStatus.OK, products.stream().map(
-            product -> getProduct(product)).toList()
+            this::getProduct).toList()
         );
     }
 
@@ -151,7 +156,7 @@ public class ProductService {
 
         if (products.isEmpty()) {return Store.initialize(HttpStatus.BAD_REQUEST, List.of());}
 
-        return Store.initialize(HttpStatus.OK, products.stream().map(product -> getProduct(product)).toList());
+        return Store.initialize(HttpStatus.OK, products.stream().map(this::getProduct).toList());
     }
 
     @Transactional
