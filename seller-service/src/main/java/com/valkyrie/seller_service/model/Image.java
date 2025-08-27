@@ -12,9 +12,9 @@ public class Image {
     private String type;
     @Lob
     private byte[] data;
-    @ManyToOne
-    @JoinColumn(name = "seller_id", referencedColumnName = "id")
-    private Seller seller;
+//    @ManyToOne
+//    @JoinColumn(name = "seller_id", referencedColumnName = "id")
+//    private Seller seller;
 
     public int getId() {
         return id;
@@ -48,12 +48,12 @@ public class Image {
         return this;
     }
 
-    public Product getProduct() {return product;}
-
-    public Image setProduct(Product product) {
-        this.product = product;
-        return this;
-    }
+//    public Product getProduct() {return product;}
+//
+//    public Image setProduct(Product product) {
+//        this.product = product;
+//        return this;
+//    }
 
     @Override
     public String toString() {return name + "." + type;}
