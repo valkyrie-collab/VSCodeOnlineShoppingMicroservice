@@ -86,7 +86,8 @@ public class ProductService {
     }
 
     @Transactional
-    public Store<String> updateRating(String id, Star star, String customerId) {
+    public Store<String> updateRating(String id, Star star, String token) {
+        String customerId = config.getUsername(token);
         star = star.setCustomerId(customerId);
         Star fiveStars = starRepo.findByCustomerId(customerId);
         Product product = repo.findById(id).orElse(null);
