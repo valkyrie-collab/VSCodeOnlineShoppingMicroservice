@@ -1,5 +1,6 @@
 package com.valkyrie.seller_service.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.valkyrie.seller_service.config.TokenConfig;
 import com.valkyrie.seller_service.feign.ProductFeignController;
 import com.valkyrie.seller_service.model.*;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -62,11 +64,14 @@ public class SellerService {
                 .setRegistrationDate(seller.getRegistrationDate()).setRating(seller.getRating());
     }
 
-    public Store<String> save(String token, String sellerJsonString, List<MultipartFile> imageFiles) {
-
-
-        seller = seller.setId(config.getUsername(token));
-        sellerRepo.save(seller);
+    public Store<String> save(String token, String sellerJsonString,
+                              MultipartFile imageFile, MultipartFile documentFile) throws IOException {
+        Seller seller = new ObjectMapper().readValue(sellerJsonString, Seller.class);
+        Image image = new Image().setName(imageFile.getOriginalFilename()).setSeller(seller)
+                .setData(imageFile.getBytes()).setType(imageFile.getContentType());
+        Document document = new Document().setData(documentFile.getBytes()).setSeller(seller)
+                .setType(documentFile.getContentType()).setName(documentFile.getName());
+        sellerRepo.save(seller.setImage(image).setDocument(document).setId(config.getUsername(token)));
 
         return Store.initialize(HttpStatus.ACCEPTED, "The Seller saved successfully......");
     }
@@ -85,12 +90,25 @@ public class SellerService {
         return Store.initialize(HttpStatus.BAD_REQUEST, "Same data cannot be updated....");
     }
 
-    public Store<String> updateImage(String token, List<Image> images) {
-        List<ImageDTO> imageDTOs = images.stream().map(
-                image -> new ImageDTO().setName(image.getName())
-                        .setType(image.getType()).setData(image.getData()).setId(image.getId())
-        ).toList();
+    public Store<String> updateImage(String token, MultipartFile imageFile) throws IOException {
+        Seller seller = sellerRepo.findById(config.getUsername(token)).orElse(null);
 
+        if (seller == null) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "The seller is not present..");
+        }
+
+        imageRepo.deleteById(seller.getImage().getId());
+
+        if (imageRepo.findById(seller.getImage().getId()).orElse(null) != null) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "Image not deleted....");
+        }
+
+        Image image = new Image().setName(imageFile.getOriginalFilename()).setSeller(seller)
+                .setData(imageFile.getBytes()).setType(imageFile.getContentType());
+
+        sellerRepo.save(seller.setImage(image));
+
+        return Store.initialize(HttpStatus.ACCEPTED, "Update has been successful....");
     }
 
     public Store<SellerDTO> findSellerById(String token) {

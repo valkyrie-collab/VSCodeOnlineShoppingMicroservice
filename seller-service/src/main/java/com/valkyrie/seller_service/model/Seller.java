@@ -16,16 +16,14 @@ public class Seller {
     private String business;
     private String gstNumber;
     private Date registrationDate;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id", referencedColumnName = "id")
-    private Image image;
     private String bankAccountDetails;
     private String status;
     private int rating;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "document_id", referencedColumnName = "id")
-    private Document document;
     private String description;
+    @OneToOne(mappedBy = "seller", cascade = CascadeType.ALL)
+    private Image image;
+    @OneToOne(mappedBy = "seller", cascade = CascadeType.ALL)
+    private Document document;
 
     public String getId() {
         return id;

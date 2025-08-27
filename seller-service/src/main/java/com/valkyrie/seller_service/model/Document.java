@@ -12,6 +12,9 @@ public class Document {
     private String type;
     @Lob
     private byte[] data;
+    @OneToOne
+    @JoinColumn(name = "seller_id", referencedColumnName = "id")
+    private Seller seller;
 
     public int getId() {return id;}
 
@@ -38,6 +41,13 @@ public class Document {
 
     public Document setData(byte[] data) {
         this.data = data;
+        return this;
+    }
+
+    public Seller getSeller() {return seller;}
+
+    public Document setSeller(Seller seller) {
+        this.seller = seller;
         return this;
     }
 
