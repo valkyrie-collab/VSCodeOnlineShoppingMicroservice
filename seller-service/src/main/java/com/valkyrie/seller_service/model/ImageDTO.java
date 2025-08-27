@@ -1,4 +1,4 @@
-package com.valkyrie.product_service.model;
+package com.valkyrie.seller_service.model;
 
 import java.util.Base64;
 

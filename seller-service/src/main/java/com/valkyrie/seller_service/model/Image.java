@@ -1,13 +1,6 @@
-package com.valkyrie.product_service.model;
+package com.valkyrie.seller_service.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "image")
@@ -20,8 +13,8 @@ public class Image {
     @Lob
     private byte[] data;
     @ManyToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "id")
-    private Product product;
+    @JoinColumn(name = "seller_id", referencedColumnName = "id")
+    private Seller seller;
 
     public int getId() {
         return id;
