@@ -141,6 +141,20 @@ public class ProductService {
     }
 
     @Transactional
+    public Store<String> updateQuantity(String productId, int quantity) {
+        Integer productQuantity = repo.getQuantityFromProduct(productId);
+
+        if (productQuantity < quantity) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "The Stock is empty...");
+        }
+
+        productQuantity -= quantity;
+        repo.updateQuantityFromProduct(productQuantity, productId);
+
+        return Store.initialize(HttpStatus.ACCEPTED, "quantity has been updated");
+    }
+
+    @Transactional
     public Store<List<ProductDTO>> findBySearchKeyword(String searchKeyword) {
         List<Product> products = repo.findAllProductBySearchKeyword(searchKeyword);
 
@@ -149,6 +163,15 @@ public class ProductService {
         return Store.initialize(HttpStatus.OK, products.stream().map(
             this::getProduct).toList()
         );
+    }
+
+    @Transactional
+    public Store<ProductDTO> findByProductId(String id) {
+        Product product = repo.findById(id).orElse(null);
+
+        if (product == null) {return Store.initialize(HttpStatus.BAD_REQUEST, new ProductDTO());}
+
+        return Store.initialize(HttpStatus.OK, getProduct(product));
     }
 
     @Transactional

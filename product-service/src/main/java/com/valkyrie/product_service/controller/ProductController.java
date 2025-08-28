@@ -97,6 +97,13 @@ public class ProductController {
         return ResponseEntity.status(store.getStatus()).body(store.getInstance());
     }
 
+    @GetMapping("/find-by-product-id")
+    public ResponseEntity<ProductDTO> findByProductId(@RequestParam String id) {
+        Store<ProductDTO> store = service.findByProductId(id);
+
+        return ResponseEntity.status(store.getStatus()).body(store.getInstance());
+    }
+
     @GetMapping("/find-by-seller-id")
     public ResponseEntity<List<ProductDTO>> findBySellerId(@RequestParam String sellerId) {
         Store<List<ProductDTO>> store = service.findBySellerId(sellerId);
