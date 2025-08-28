@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -64,18 +65,20 @@ public class SellerService {
                 .setRegistrationDate(seller.getRegistrationDate()).setRating(seller.getRating());
     }
 
+    @Transactional
     public Store<String> save(String token, String sellerJsonString,
                               MultipartFile imageFile, MultipartFile documentFile) throws IOException {
         Seller seller = new ObjectMapper().readValue(sellerJsonString, Seller.class);
         Image image = new Image().setName(imageFile.getOriginalFilename()).setSeller(seller)
                 .setData(imageFile.getBytes()).setType(imageFile.getContentType());
         Document document = new Document().setData(documentFile.getBytes()).setSeller(seller)
-                .setType(documentFile.getContentType()).setName(documentFile.getName());
+                .setType(documentFile.getContentType()).setName(documentFile.getOriginalFilename());
         sellerRepo.save(seller.setImage(image).setDocument(document).setId(config.getUsername(token)));
 
         return Store.initialize(HttpStatus.ACCEPTED, "The Seller saved successfully......");
     }
 
+    @Transactional
     public Store<String> update(Seller seller) {
         Seller presentSeller = sellerRepo.findById(seller.getId()).orElse(null);
 
@@ -90,6 +93,7 @@ public class SellerService {
         return Store.initialize(HttpStatus.BAD_REQUEST, "Same data cannot be updated....");
     }
 
+    @Transactional
     public Store<String> updateImage(String token, MultipartFile imageFile) throws IOException {
         Seller seller = sellerRepo.findById(config.getUsername(token)).orElse(null);
 
@@ -97,20 +101,44 @@ public class SellerService {
             return Store.initialize(HttpStatus.BAD_REQUEST, "The seller is not present..");
         }
 
-        imageRepo.deleteById(seller.getImage().getId());
+        imageRepo.deleteBySellerId(seller.getId());
 
-        if (imageRepo.findById(seller.getImage().getId()).orElse(null) != null) {
+        if (imageRepo.findBySeller(seller) != null) {
             return Store.initialize(HttpStatus.BAD_REQUEST, "Image not deleted....");
         }
 
         Image image = new Image().setName(imageFile.getOriginalFilename()).setSeller(seller)
                 .setData(imageFile.getBytes()).setType(imageFile.getContentType());
 
-        sellerRepo.save(seller.setImage(image));
+        imageRepo.save(image);
 
         return Store.initialize(HttpStatus.ACCEPTED, "Update has been successful....");
     }
 
+    @Transactional
+    public Store<String> updateDocument(String token, MultipartFile documentFile) throws IOException {
+        Seller seller = sellerRepo.findById(config.getUsername(token)).orElse(null);
+
+        if (seller == null) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "Seller not present to update..");
+        }
+
+        documentRepo.deleteDocumentBySellerId(seller.getId());
+
+        if (documentRepo.findBySeller(seller) != null) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "Image not deleted....");
+        }
+
+        Document document = new Document().setName(documentFile.getOriginalFilename())
+                .setData(documentFile.getBytes()).setSeller(seller)
+                .setType(documentFile.getContentType());
+
+        documentRepo.save(document);
+
+        return Store.initialize(HttpStatus.ACCEPTED, "document updated successfully...");
+    }
+
+    @Transactional
     public Store<SellerDTO> findSellerById(String token) {
         String id = config.getUsername(token);
         Seller seller = sellerRepo.findById(id).orElse(null);
@@ -120,6 +148,7 @@ public class SellerService {
         return Store.initialize(HttpStatus.OK, getSeller(seller));
     }
 
+    @Transactional
     public Store<List<SellerDTO>> findAllSeller() {
         List<Seller> sellers = sellerRepo.findAll();
         List<SellerDTO> sellerDTOs = sellers.stream().map(
@@ -127,5 +156,21 @@ public class SellerService {
         ).toList();
 
         return Store.initialize(HttpStatus.OK, sellerDTOs);
+    }
+
+    @Transactional
+    public Store<String> deleteSellerById(String token) {
+        String username = config.getUsername(token);
+
+        if (sellerRepo.findById(username).orElse(null) == null) {
+            return Store.initialize(HttpStatus.OK, "The seller is already been deleted....");
+        }
+
+        feign.deleteAllBySellerId(username);
+        sellerRepo.deleteById(username);
+
+        return sellerRepo.findById(username).orElse(null) == null?
+                Store.initialize(HttpStatus.OK, "The Seller has been delete successfully...") :
+                Store.initialize(HttpStatus.BAD_REQUEST, "The seller is not deleted");
     }
 }
