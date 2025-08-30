@@ -11,8 +11,6 @@ public class Order {
     private String id;
     private String productId;
     private String customerId;
-    private String productName;
-    private String productDescription;
     private String shippingInformation;
     private int quantity;
     private int price;
@@ -22,10 +20,6 @@ public class Order {
     public String getProductId() {return productId;}
 
     public String getCustomerId() {return customerId;}
-
-    public String getProductName() {return productName;}
-
-    public String getProductDescription() {return productDescription;}
 
     public String getShippingInformation() {return shippingInformation;}
 
@@ -48,16 +42,6 @@ public class Order {
         return this;
     }
 
-    public Order setProductName(String productName) {
-        this.productName = productName;
-        return this;
-    }
-
-    public Order setProductionDescription(String productDescription) {
-        this.productDescription = productDescription;
-        return this;
-    }
-
     public Order setShippingInformation(String shippingInformation) {
         this.shippingInformation = shippingInformation;
         return this;
@@ -75,6 +59,6 @@ public class Order {
 
     @Override
     public String toString() {
-        return id + productId + customerId + productDescription + productName + price;
+        return id + productId + customerId + shippingInformation + price + quantity;
     }
 }

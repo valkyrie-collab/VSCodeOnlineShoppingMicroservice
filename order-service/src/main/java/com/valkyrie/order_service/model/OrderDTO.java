@@ -3,8 +3,8 @@ package com.valkyrie.order_service.model;
 public class OrderDTO {
     private String id;
     private String customerId;
-    private String productName;
-    private String productDescription;
+//    private String productName;
+//    private String productDescription;
     private String shippingInformation;
     private int quantity;
     private int price;
@@ -14,9 +14,9 @@ public class OrderDTO {
 
     public String getCustomerId() {return customerId;}
 
-    public String getProductName() {return productName;}
-
-    public String getProductDescription() {return productDescription;}
+//    public String getProductName() {return productName;}
+//
+//    public String getProductDescription() {return productDescription;}
 
     public String getShippingInformation() {return shippingInformation;}
 
@@ -36,15 +36,15 @@ public class OrderDTO {
         return this;
     }
 
-    public OrderDTO setProductName(String productName) {
-        this.productName = productName;
-        return this;
-    }
-
-    public OrderDTO setProductDescription(String productDescription) {
-        this.productDescription = productDescription;
-        return this;
-    }
+//    public OrderDTO setProductName(String productName) {
+//        this.productName = productName;
+//        return this;
+//    }
+//
+//    public OrderDTO setProductDescription(String productDescription) {
+//        this.productDescription = productDescription;
+//        return this;
+//    }
 
     public OrderDTO setShippingInformation(String shippingInformation) {
         this.shippingInformation = shippingInformation;
