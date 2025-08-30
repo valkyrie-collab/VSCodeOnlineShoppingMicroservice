@@ -90,6 +90,14 @@ public class ProductController {
         return ResponseEntity.status(store.getStatus()).body(store.getInstance());
     }
 
+    @PostMapping("/update-product-quantity")
+    public ResponseEntity<Integer> updateQuantity(@RequestParam String productId,
+                                                 @RequestParam int quantity) {
+        Store<Integer> store = service.updateQuantity(productId, quantity);
+
+        return ResponseEntity.status(store.getStatus()).body(store.getInstance());
+    }
+
     @GetMapping("/find-by-search-keyword")
     public ResponseEntity<List<ProductDTO>> findBySearchKeyword(@RequestParam String searchKeyword) {
         Store<List<ProductDTO>> store = service.findBySearchKeyword(searchKeyword);

@@ -41,14 +41,25 @@ public class OrderService {
         return new OrderDTO().setCustomerId(order.getCustomerId())
                 .setPrice(order.getPrice()).setQuantity(order.getQuantity())
                 .setShippingInformation(order.getShippingInformation())
-                .setProduct(response.getBody());
+                .setProduct(response.getBody()).setId(order.getId());
     }
 
     @Transactional
     public Store<String> save(String token, String productId, Order order) {
         String username = config.getUsername(token);
         String uuid = UUID.randomUUID().toString();
-        order = order.setCustomerId(username).setProductId(productId).setId(uuid);
+        ResponseEntity<Integer> response = feign.updateQuantity(productId, order.getQuantity());
+
+        if (response == null || !response.getStatusCode().equals(HttpStatusCode.valueOf(200))) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "There is no such Product: ");
+        }
+
+        if (response.getBody() == null) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "Empty response Body");
+        }
+
+        order = order.setCustomerId(username).setId(uuid)
+                .setProductId(productId).setQuantity(response.getBody());
         repo.save(order);
 
         return Store.initialize(HttpStatus.ACCEPTED, "Order saved successfully....");
@@ -65,9 +76,17 @@ public class OrderService {
 
     @Transactional
     public Store<String> cancel(String id) {
+        Order order = repo.findById(id).orElse(null);
 
-        if (repo.findById(id).orElse(null) == null) {
+        if (order == null) {
             return Store.initialize(HttpStatus.OK, "The order is already been canceled");
+        }
+
+        ResponseEntity<Integer> response = feign.updateQuantity(
+                order.getProductId(), order.getQuantity());
+
+        if (response == null || !response.getStatusCode().equals(HttpStatusCode.valueOf(200))) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, "Product is not present..");
         }
 
         repo.deleteById(id);

@@ -141,17 +141,18 @@ public class ProductService {
     }
 
     @Transactional
-    public Store<String> updateQuantity(String productId, int quantity) {
+    public Store<Integer> updateQuantity(String productId, int quantity) {
         Integer productQuantity = repo.getQuantityFromProduct(productId);
 
-        if (productQuantity < quantity) {
-            return Store.initialize(HttpStatus.BAD_REQUEST, "The Stock is empty...");
+        if (productQuantity == 0) {
+            return Store.initialize(HttpStatus.BAD_REQUEST, -1);
         }
 
+        if (quantity > 0) {quantity = Math.min(productQuantity, quantity);}
         productQuantity -= quantity;
         repo.updateQuantityFromProduct(productQuantity, productId);
 
-        return Store.initialize(HttpStatus.ACCEPTED, "quantity has been updated");
+        return Store.initialize(HttpStatus.OK, quantity);
     }
 
     @Transactional
